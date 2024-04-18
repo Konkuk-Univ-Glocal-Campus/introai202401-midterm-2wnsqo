@@ -13,6 +13,9 @@ from PIL import Image
 import glob
 import os
 import zipfile 
+# 데이터 분활을 위한 라이브러리 추가
+from torch.utils.data import Subset, DataLoader
+from sklearn.model_selection import train_test_split
 
 #gpu가 있으면 cuda로 하고 없으면 cpu로 한다
 default_device = 'cuda' if torch.cuda.is_available() else 'cpu'
