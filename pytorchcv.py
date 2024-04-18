@@ -31,6 +31,8 @@ def load_fashion_mnist(batch_size=64): # load_fashion_mnist라는 이름의 함�
     builtins.train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
     builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size)
     builtins.val_loader = torch.utils.data.DataLoader(data_val, batch_size=batch_size)
+    return train_loader, test_loader, val_loader
+train_loader, test_loader, val_loader = load_fashion_mnist(batch_size=128)
 # 신경망을 한 에폭(epoch) 동안 학습하는 과정을 구현한 Python 함수
 # 이 함수는 모델을 학습시키고, 각 배치에서의 평균 손실과 정확도를 계산하여 반환하는데 이를 통해 학습 과정을 모니터링할 수 있음
 
