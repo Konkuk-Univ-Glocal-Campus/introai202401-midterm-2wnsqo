@@ -29,7 +29,7 @@ def load_fashion_mnist(batch_size=64): # load_fashion_mnist라는 이름의 함�
     train_size = int(0.6 * len(data_full))
     val_size = int(0.2 * len(data_full))
     test_size = len(data_full) - train_size - val_size
-    data_train, data_test, data_val = torch.utils.data.random_split(data_full, [train_size, val_size, test_size])
+    builtins.data_train, builtins.data_test, builtins.data_val = torch.utils.data.random_split(data_full, [train_size, val_size, test_size])
 
     builtins.train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size,shuffle=True) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
     builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size)
