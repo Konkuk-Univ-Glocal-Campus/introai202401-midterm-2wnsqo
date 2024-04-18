@@ -14,19 +14,23 @@ import glob
 import os
 import zipfile 
 
+#gpu가 있으면 cuda로 하고 없으면 cpu로 한다
 default_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Python에서 MNIST 데이터셋을 불러와서 처리하는 과정
+# Python에서 FasionMNIST 데이터셋을 불러와서 처리하는 과정
 # 이 함수를 실행하면, builtins 모듈을 통해 전역 변수로 설정된 data_train, data_test, train_loader, test_loader가 생성되어 어디서든 접근할 수 있게 됩니다. 이러한 설정은 함수 내에서 데이터를 처리하고, 이후에 다른 부분에서 해당 데이터를 사용할 때 유용하게 활용될 수 있음
 
-def load_mnist(batch_size=64): # load_mnist라는 이름의 함수를 정의하고, 이 함수는 기본적으로 batch_size 매개변수를 64로 설정합니다. 이 매개변수는 데이터를 얼마나 많은 단위로 나눌지 결정
-    builtins.data_train = torchvision.datasets.MNIST('./data',
-        download=True,train=True,transform=ToTensor()) # torchvision 라이브러리의 datasets 모듈을 사용하여 MNIST 데이터셋을 불러옵니다. './data'는 데이터셋이 저장될 경로를 지정하며, download=True는 해당 경로에 데이터가 없을 경우 인터넷에서 자동으로 다운로드하도록 설정합니다. train=True는 학습용 데이터셋을 불러오는 것을 의미하고, transform=ToTensor()는 데이터셋의 이미지들을 파이토치 텐서로 변환하는 함수를 적용
-    builtins.data_test = torchvision.datasets.MNIST('./data', 
-        download=True,train=False,transform=ToTensor()) # 테스트 데이터셋을 불러오는 코드입니다. train=False로 설정하여 학습용이 아닌 테스트용 데이터셋을 불러옴
-    builtins.train_loader = torch.utils.data.DataLoader(data_train,batch_size=batch_size) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
-    builtins.test_loader = torch.utils.data.DataLoader(data_test,batch_size=batch_size)
+def load_fashion_mnist(batch_size=64): # load_fashion_mnist라는 이름의 함수를 정의하고, 이 함수는 기본적으로 batch_size 매개변수를 64로 설정합니다. 이 매개변수는 데이터를 얼마나 많은 단위로 나눌지 결정
+    builtins.data_train = torchvision.datasets.FashionMNIST('./data',
+        download=True, train=True, transform=ToTensor()) # torchvision 라이브러리의 datasets 모듈을 사용하여 FasionMNIST 데이터셋을 불러옵니다. './data'는 데이터셋이 저장될 경로를 지정하며, download=True는 해당 경로에 데이터가 없을 경우 인터넷에서 자동으로 다운로드하도록 설정합니다. train=True는 학습용 데이터셋을 불러오는 것을 의미하고, transform=ToTensor()는 데이터셋의 이미지들을 파이토치 텐서로 변환하는 함수를 적용
+    builtins.data_test = torchvision.datasets.FashionMNIST('./data', 
+        download=True, train=False, transform=ToTensor()) # 테스트 데이터셋을 불러오는 코드입니다. train=False로 설정하여 학습용이 아닌 테스트용 데이터셋을 불러옴
+    builtins.data_val = torchvision.datasets.FashionMNIST('./data', 
+        download=True, train=False, transform=ToTensor())
 
+    builtins.train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
+    builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size)
+    builtins.val_loader = torch.utils.data.DataLoader(data_val, batch_size=batch_size)
 # 신경망을 한 에폭(epoch) 동안 학습하는 과정을 구현한 Python 함수
 # 이 함수는 모델을 학습시키고, 각 배치에서의 평균 손실과 정확도를 계산하여 반환하는데 이를 통해 학습 과정을 모니터링할 수 있음
 
@@ -65,12 +69,12 @@ def validate(net, dataloader,loss_fn=nn.NLLLoss()): # validate 함수를 정의�
 
 # 신경망 모델을 여러 에폭(epoch) 동안 학습하고 평가하는 과정을 정의하는 Python 함수
 
-def train(net,train_loader,test_loader,optimizer=None,lr=0.01,epochs=10,loss_fn=nn.NLLLoss()): # train 함수를 정의 - net: 학습할 신경망 모델; train_loader와 test_loader: 학습 및 테스트 데이터셋을 로드하는 데 사용되는 데이터 로더; optimizer: 최적화 도구 (기본적으로 None이며, 지정되지 않았을 경우 Adam 최적화 도구가 사용); lr: 학습률 (기본값은 0.01); epochs: 전체 학습 과정을 반복할 횟수 (기본값은 10); loss_fn: 손실 함수 (기본값은 Negative Log Likelihood Loss)
+def train(net,train_loader,test_loader,val_loader,optimizer=None,lr=0.01,epochs=10,loss_fn=nn.NLLLoss()): # train 함수를 정의 - net: 학습할 신경망 모델; train_loader와 test_loader: 학습 및 테스트 데이터셋을 로드하는 데 사용되는 데이터 로더; optimizer: 최적화 도구 (기본적으로 None이며, 지정되지 않았을 경우 Adam 최적화 도구가 사용); lr: 학습률 (기본값은 0.01); epochs: 전체 학습 과정을 반복할 횟수 (기본값은 10); loss_fn: 손실 함수 (기본값은 Negative Log Likelihood Loss)
     optimizer = optimizer or torch.optim.Adam(net.parameters(),lr=lr) # 최적화 도구 (기본적으로 None이며, 지정되지 않았을 경우 Adam 최적화 도구가 사용하며, 학습률은 lr로 설정)
     res = { 'train_loss' : [], 'train_acc': [], 'val_loss': [], 'val_acc': []} # 학습 및 검증 과정에서 계산된 손실과 정확도를 저장할 딕셔너리를 초기화
     for ep in range(epochs): # 지정된 에폭 수만큼 반복
         tl,ta = train_epoch(net,train_loader,optimizer=optimizer,lr=lr,loss_fn=loss_fn) # train_epoch 함수를 호출하여 한 에폭 동안의 학습을 수행하고, 학습 손실(tl)과 정확도(ta)를 반환 받음
-        vl,va = validate(net,test_loader,loss_fn=loss_fn) # validate 함수를 호출하여 모델을 검증 데이터셋에 대해 평가하고, 검증 손실(vl)과 정확도(va)를 반환 받음
+        vl,va = validate(net,val_loader,loss_fn=loss_fn) # validate 함수를 호출하여 모델을 검증 데이터셋에 대해 평가하고, 검증 손실(vl)과 정확도(va)를 반환 받음
         print(f"Epoch {ep:2}, Train acc={ta:.3f}, Val acc={va:.3f}, Train loss={tl:.3f}, Val loss={vl:.3f}") # 에폭, 학습 정확도, 검증 정확도, 학습 손실, 검증 손실을 출력
         res['train_loss'].append(tl) # 각 결과 값을 딕셔너리에 추가
         res['train_acc'].append(ta)
@@ -176,19 +180,3 @@ def common_transform(): # common_transform이라는 이름의 함수를 정의�
             torchvision.transforms.ToTensor(), # 이미지 데이터를 PyTorch 텐서로 변환하고, 데이터 타입을 0에서 1 사이의 값으로 스케일링
             std_normalize]) # 정규화 변환을 적용
     return trans # 구성된 변환 파이프라인을 반환
-
-# 개와 고양이의 이미지 데이터셋을 불러오고, 처리하여 학습 및 테스트 데이터셋으로 분할하는 Python 함수 load_cats_dogs_dataset를 정의하는데 함수는 데이터셋을 압축 해제하고, 이미지를 검사하며, 데이터를 분할하고, 로더를 설정하는 여러 단계로 구성
-
-def load_cats_dogs_dataset(): # load_cats_dogs_dataset라는 이름의 함수를 정의합니다. 이 함수는 매개변수를 받지 않음
-    if not os.path.exists('data/PetImages'): # 지정된 경로에 'PetImages' 폴더가 존재하는지 확인합니다. 폴더가 없으면 다음 단계로 이동
-        with zipfile.ZipFile('data/kagglecatsanddogs_5340.zip', 'r') as zip_ref: # 'kagglecatsanddogs_5340.zip'라는 이름의 압축 파일을 읽기 모드로 열고 zip_ref 객체로 참조
-            zip_ref.extractall('data') # zip_ref 객체를 사용하여 압축 파일 내의 모든 내용을 'data' 디렉토리에 압축 해제
-
-    check_image_dir('data/PetImages/Cat/*.jpg') # 'data/PetImages/Cat' 폴더 내의 모든 '.jpg' 파일을 검사하여 손상된 이미지가 있는지 확인하고, 손상된 이미지는 삭제
-    check_image_dir('data/PetImages/Dog/*.jpg') # 'data/PetImages/Dog' 폴더 내의 모든 '.jpg' 파일도 동일하게 검사
-
-    dataset = torchvision.datasets.ImageFolder('data/PetImages',transform=common_transform()) # ImageFolder 클래스를 사용하여 'data/PetImages' 디렉토리의 이미지들을 로드하고 common_transform() 함수를 호출하여 이미지에 적용할 변환을 설정
-    trainset, testset = torch.utils.data.random_split(dataset,[20000,len(dataset)-20000]) # 데이터셋을 무작위로 20,000개의 학습 셋과 나머지를 테스트 셋으로 분할
-    trainloader = torch.utils.data.DataLoader(trainset,batch_size=32) # 학습 데이터셋에 대한 데이터 로더를 생성하고, 배치 크기를 32로 설정
-    testloader = torch.utils.data.DataLoader(testset,batch_size=32) # 테스트 데이터셋에 대한 데이터 로더를 생성하고, 배치 크기를 32로 설정
-    return dataset, trainloader, testloader # 완성된 데이터셋과 데이터 로더들을 반환
