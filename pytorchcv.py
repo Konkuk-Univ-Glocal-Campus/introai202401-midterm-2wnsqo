@@ -25,15 +25,18 @@ def load_fashion_mnist(batch_size=64): # load_fashion_mnist라는 이름의 함�
         download=True, train=True, transform=ToTensor()) # torchvision 라이브러리의 datasets 모듈을 사용하여 FasionMNIST 데이터셋을 불러옵니다. './data'는 데이터셋이 저장될 경로를 지정하며, download=True는 해당 경로에 데이터가 없을 경우 인터넷에서 자동으로 다운로드하도록 설정합니다. train=True는 학습용 데이터셋을 불러오는 것을 의미하고, transform=ToTensor()는 데이터셋의 이미지들을 파이토치 텐서로 변환하는 함수를 적용
     builtins.data_test = torchvision.datasets.FashionMNIST('./data', 
         download=True, train=False, transform=ToTensor()) # 테스트 데이터셋을 불러오는 코드입니다. train=False로 설정하여 학습용이 아닌 테스트용 데이터셋을 불러옴
-    builtins.data_val = torchvision.datasets.FashionMNIST('./data', 
-        download=True, train=False, transform=ToTensor())
+    
 
     builtins.train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
     builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size)
+    # 추가: data_val 불러오기
+    builtins.data_val = torchvision.datasets.FashionMNIST('./data', 
+        download=True, train=False, transform=ToTensor())
     builtins.val_loader = torch.utils.data.DataLoader(data_val, batch_size=batch_size)
 # 신경망을 한 에폭(epoch) 동안 학습하는 과정을 구현한 Python 함수
 # 이 함수는 모델을 학습시키고, 각 배치에서의 평균 손실과 정확도를 계산하여 반환하는데 이를 통해 학습 과정을 모니터링할 수 있음
 
+#훈련 단
 def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = nn.NLLLoss()): # 이 함수는 여러 매개변수를 받는데, net은 학습할 신경망 모델, dataloader는 데이터 로더, lr은 학습률(기본값 0.01), optimizer는 최적화 도구(기본값은 None), loss_fn은 손실 함수로 기본적으로 Negative Log Likelihood Loss를 사용
     optimizer = optimizer or torch.optim.Adam(net.parameters(),lr=lr) # 최적화 도구가 제공되지 않았다면, Adam 최적화 도구를 사용하여 신경망의 매개변수를 최적화하며, 학습률은 lr로 설정
     net.train() # 모델을 학습 모드로 설정합니다. 이는 일부 신경망 계층(예: 드롭아웃 계층)이 학습과 평가 모드에서 다르게 동작하기 때문에 필요
@@ -54,11 +57,12 @@ def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = nn.NLLLoss()): #
 # 주어진 신경망 모델을 평가하는 과정을 나타내는 Python 함수
 # 이 함수는 주어진 데이터 로더를 사용하여 모델의 성능을 평가하고, 평균 손실과 정확도를 반환하여 모델의 효율성을 확인
 
+# 검증 단계
 def validate(net, dataloader,loss_fn=nn.NLLLoss()): # validate 함수를 정의하고, 세 개의 매개변수를 받는데 net은 평가할 신경망 모델, dataloader는 평가 데이터셋을 로딩하는 데이터 로더, loss_fn은 손실 함수로 기본값은 Negative Log Likelihood Loss
     net.eval() # 모델을 평가(evaluation) 모드로 설정하는데 이 모드에서는 모델의 학습 과정에만 적용되는 특정 기능들(예: 드롭아웃)이 비활성화
     count,acc,loss = 0,0,0 # 총 처리한 데이터의 수, 정확히 예측된 데이터의 수, 그리고 총 손실을 0으로 초기화
     with torch.no_grad(): # 기울기 계산이 수행되지 않는데 평가 시에는 모델의 가중치가 갱신되지 않음
-        for features,labels in dataloader: # 데이터 로더에서 데이터 배치를 반복적으로 가져오는데 각 배치는 features (특징 데이터)와 labels (레이블 데이터)로 구성
+        for features,labels in val_loader: # 데이터 로더에서 데이터 배치를 반복적으로 가져오는데 각 배치는 features (특징 데이터)와 labels (레이블 데이터)로 구성
             lbls = labels.to(default_device) # 레이블을 기본 계산 장치(예: GPU)로 이동
             out = net(features.to(default_device)) # 특징 데이터도 같은 계산 장치로 이동한 후, 신경망 모델을 통해 예측을 수행
             loss += loss_fn(out,lbls) # 예측 결과와 실제 레이블을 사용하여 손실을 계산하고, 총 손실에 누적
