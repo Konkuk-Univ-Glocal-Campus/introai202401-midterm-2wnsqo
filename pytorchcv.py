@@ -32,8 +32,8 @@ def load_fashion_mnist(batch_size=64): # load_fashion_mnist라는 이름의 함�
     builtins.data_train, builtins.data_test, builtins.data_val = torch.utils.data.random_split(data_full, [train_size, val_size, test_size]) # 설정한 비율로 전체 데이터에서 랜덤으러 나눠준다. 
 
     builtins.train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size,shuffle=True) # 학습 데이터셋을 데이터 로더에 로드합니다. 데이터 로더는 데이터셋을 지정된 배치 크기에 맞게 나누고, 이를 반복 가능한 객체로 만들어 학습 과정에서 쉽게 사용할 수 있게 도움
-    builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size) # 테스트 데이터셋을 데이터 로더에 로드합니다.
-    builtins.val_loader = torch.utils.data.DataLoader(data_val, batch_size=batch_size) # 확인 데이터셋을 데이터 로더에 로드합니다.
+    builtins.test_loader = torch.utils.data.DataLoader(data_test, batch_size=batch_size) # 테스트 데이터셋을 데이터 로더에 로드
+    builtins.val_loader = torch.utils.data.DataLoader(data_val, batch_size=batch_size) # 확인 데이터셋을 데이터 로더에 로드
     
     
 # 신경망을 한 에폭(epoch) 동안 학습하는 과정을 구현한 Python 함수
